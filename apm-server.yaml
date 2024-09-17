@@ -1,0 +1,27 @@
+image:
+  tag: 8.13.4
+
+replicaCount: 1
+
+elasticsearchHosts: "https://localhost:9200"
+
+apmConfig:
+  apm-server.yml: |
+    apm-server:
+      host: "0.0.0.0:8200"
+    output.elasticsearch:
+      hosts: ["https://localhost:9200"]
+      username: "elastic"
+      password: "password"
+
+service:
+  type: LoadBalancer
+  port: 8200
+
+resources:
+  limits:
+    cpu: 1
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi

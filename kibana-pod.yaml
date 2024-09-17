@@ -1,0 +1,284 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: "2024-07-17T12:21:09Z"
+  generateName: elasticsearch-kibana-8569469b94-
+  labels:
+    app: kibana
+    app.kubernetes.io/instance: elasticsearch
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: kibana
+    app.kubernetes.io/version: 8.14.2
+    helm.sh/chart: kibana-11.2.10
+    pod-template-hash: 8569469b94
+  name: elasticsearch-kibana-8569469b94-6ljhp
+  namespace: elastic
+  ownerReferences:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: ReplicaSet
+    name: elasticsearch-kibana-8569469b94
+    uid: d6592a15-fce4-4bf7-b09f-3393166a921a
+  resourceVersion: "433584"
+  uid: 2785f924-3da7-4535-a928-7649df2136d6
+spec:
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - podAffinityTerm:
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/instance: elasticsearch
+              app.kubernetes.io/name: kibana
+          topologyKey: kubernetes.io/hostname
+        weight: 1
+  automountServiceAccountToken: false
+  containers:
+  - env:
+    - name: BITNAMI_DEBUG
+      value: "false"
+    - name: KIBANA_PORT_NUMBER
+      value: "5601"
+    - name: KIBANA_ELASTICSEARCH_URL
+      value: https://elasticsearch:9200
+    - name: KIBANA_ELASTICSEARCH_PORT_NUMBER
+      value: "9200"
+    - name: KIBANA_FORCE_INITSCRIPTS
+      value: "false"
+    - name: KIBANA_SERVER_ENABLE_TLS
+      value: "false"
+    - name: KIBANA_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          key: kibana-password
+          name: elasticsearch-kibana
+    - name: KIBANA_ELASTICSEARCH_ENABLE_TLS
+      value: "true"
+    - name: KIBANA_ELASTICSEARCH_TLS_USE_PEM
+      value: "true"
+    - name: KIBANA_ELASTICSEARCH_TLS_VERIFICATION_MODE
+      value: full
+    image: docker.io/bitnami/kibana:8.14.2-debian-12-r0
+    imagePullPolicy: IfNotPresent
+    livenessProbe:
+      failureThreshold: 6
+      initialDelaySeconds: 120
+      periodSeconds: 10
+      successThreshold: 1
+      tcpSocket:
+        port: http
+      timeoutSeconds: 5
+    name: kibana
+    ports:
+    - containerPort: 5601
+      name: http
+      protocol: TCP
+    readinessProbe:
+      failureThreshold: 6
+      httpGet:
+        path: /status
+        port: http
+        scheme: HTTP
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 5
+    resources:
+      limits:
+        cpu: 750m
+        ephemeral-storage: 1Gi
+        memory: 768Mi
+      requests:
+        cpu: 500m
+        ephemeral-storage: 50Mi
+        memory: 512Mi
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      privileged: false
+      readOnlyRootFilesystem: true
+      runAsGroup: 1001
+      runAsNonRoot: true
+      runAsUser: 1001
+      seLinuxOptions: {}
+      seccompProfile:
+        type: RuntimeDefault
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /tmp
+      name: empty-dir
+      subPath: tmp-dir
+    - mountPath: /opt/bitnami/kibana/config
+      name: empty-dir
+      subPath: app-conf-dir
+    - mountPath: /opt/bitnami/kibana/tmp
+      name: empty-dir
+      subPath: app-tmp-dir
+    - mountPath: /opt/bitnami/kibana/logs
+      name: empty-dir
+      subPath: app-logs-dir
+    - mountPath: /opt/bitnami/kibana/plugins
+      name: empty-dir
+      subPath: app-plugins-dir
+    - mountPath: /bitnami/kibana
+      name: kibana-data
+    - mountPath: /bitnami/kibana/conf
+      name: kibana-config
+    - mountPath: /opt/bitnami/kibana/config/certs/elasticsearch
+      name: elasticsearch-certificates
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  initContainers:
+  - args:
+    - -ec
+    - |
+      #!/bin/bash
+
+      . /opt/bitnami/scripts/libfs.sh
+      . /opt/bitnami/scripts/kibana-env.sh
+
+      if ! is_dir_empty "$SERVER_DEFAULT_PLUGINS_DIR"; then
+          cp -nr "$SERVER_DEFAULT_PLUGINS_DIR"/* /plugins
+      fi
+    command:
+    - /bin/bash
+    image: docker.io/bitnami/kibana:8.14.2-debian-12-r0
+    imagePullPolicy: IfNotPresent
+    name: copy-default-plugins
+    resources:
+      limits:
+        cpu: 750m
+        ephemeral-storage: 1Gi
+        memory: 768Mi
+      requests:
+        cpu: 500m
+        ephemeral-storage: 50Mi
+        memory: 512Mi
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      privileged: false
+      readOnlyRootFilesystem: true
+      runAsGroup: 1001
+      runAsNonRoot: true
+      runAsUser: 1001
+      seLinuxOptions: {}
+      seccompProfile:
+        type: RuntimeDefault
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /plugins
+      name: empty-dir
+      subPath: app-plugins-dir
+  nodeName: ip-192-168-7-117.ap-south-1.compute.internal
+  preemptionPolicy: PreemptLowerPriority
+  priority: 0
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  securityContext:
+    fsGroup: 1001
+    fsGroupChangePolicy: Always
+  serviceAccount: elasticsearch-kibana
+  serviceAccountName: elasticsearch-kibana
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  volumes:
+  - emptyDir: {}
+    name: empty-dir
+  - name: kibana-data
+    persistentVolumeClaim:
+      claimName: elasticsearch-kibana
+  - name: elasticsearch-certificates
+    secret:
+      defaultMode: 256
+      secretName: elasticsearch-coordinating-crt
+  - configMap:
+      defaultMode: 420
+      name: elasticsearch-kibana-conf
+    name: kibana-config
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2024-07-18T06:39:56Z"
+    status: "True"
+    type: PodReadyToStartContainers
+  - lastProbeTime: null
+    lastTransitionTime: "2024-07-18T06:40:00Z"
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2024-07-18T05:50:29Z"
+    message: 'containers with unready status: [kibana]'
+    reason: ContainersNotReady
+    status: "False"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2024-07-18T05:50:29Z"
+    message: 'containers with unready status: [kibana]'
+    reason: ContainersNotReady
+    status: "False"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2024-07-18T05:50:29Z"
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - containerID: containerd://f971dd914ee3e75bd7fafbe5e76be6c84cf1fe6bf8804c28517eee636d67c457
+    image: docker.io/bitnami/kibana:8.14.2-debian-12-r0
+    imageID: docker.io/bitnami/kibana@sha256:efd287a72824fe40273cbf2c557ad53237878a84b69b91ea6cb8169ac9edd4ab
+    lastState:
+      terminated:
+        containerID: containerd://f971dd914ee3e75bd7fafbe5e76be6c84cf1fe6bf8804c28517eee636d67c457
+        exitCode: 1
+        finishedAt: "2024-07-18T06:41:20Z"
+        reason: Error
+        startedAt: "2024-07-18T06:41:20Z"
+    name: kibana
+    ready: false
+    restartCount: 4
+    started: false
+    state:
+      waiting:
+        message: back-off 1m20s restarting failed container=kibana pod=elasticsearch-kibana-8569469b94-6ljhp_elastic(2785f924-3da7-4535-a928-7649df2136d6)
+        reason: CrashLoopBackOff
+  hostIP: 192.168.7.117
+  hostIPs:
+  - ip: 192.168.7.117
+  initContainerStatuses:
+  - containerID: containerd://9900b82223b1b917986bfcef7bf19f3275251fa30a50970cc91df9ccf0c1e3bc
+    image: docker.io/bitnami/kibana:8.14.2-debian-12-r0
+    imageID: docker.io/bitnami/kibana@sha256:efd287a72824fe40273cbf2c557ad53237878a84b69b91ea6cb8169ac9edd4ab
+    lastState: {}
+    name: copy-default-plugins
+    ready: true
+    restartCount: 0
+    started: false
+    state:
+      terminated:
+        containerID: containerd://9900b82223b1b917986bfcef7bf19f3275251fa30a50970cc91df9ccf0c1e3bc
+        exitCode: 0
+        finishedAt: "2024-07-18T06:39:56Z"
+        reason: Completed
+        startedAt: "2024-07-18T06:39:56Z"
+  phase: Running
+  podIP: 192.168.25.177
+  podIPs:
+  - ip: 192.168.25.177
+  qosClass: Burstable
+  startTime: "2024-07-18T05:50:29Z"
